@@ -5,9 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ImportLog } from "@/lib/types";
+import { ImportLog, ApiResponse } from "@/lib/types";
 import { RefreshCcw } from "lucide-react";
-import { useMemo, useState, useTransition } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+} from "react";
 import { triggerImport } from "./actions";
 import { importColumns } from "./columns";
 
@@ -23,7 +29,7 @@ function applyFilters(
     status,
     search,
     dateFrom,
-    dateTo
+    dateTo,
   }: {
     status: StatusFilter;
     search: string;
@@ -56,7 +62,6 @@ function applyFilters(
     if (dateTo) {
       const to = new Date(dateTo);
       const started = new Date(log.startedAt);
-      // include full day
       to.setHours(23, 59, 59, 999);
       if (started > to) return false;
     }
@@ -71,18 +76,23 @@ export function ImportsClient({ logs }: ImportsClientProps) {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [isPending, startTransition] = useTransition();
+  const [data, setData] = useState<ImportLog[]>(logs);
+
+  useEffect(() => {
+    setData(logs);
+  }, [logs]);
 
   const allFiltered = useMemo(
-    () => applyFilters(logs, { status: "all", search, dateFrom, dateTo }),
-    [logs, search, dateFrom, dateTo]
+    () => applyFilters(data, { status: "all", search, dateFrom, dateTo }),
+    [data, search, dateFrom, dateTo]
   );
   const failedFiltered = useMemo(
-    () => applyFilters(logs, { status: "failed", search, dateFrom, dateTo }),
-    [logs, search, dateFrom, dateTo]
+    () => applyFilters(data, { status: "failed", search, dateFrom, dateTo }),
+    [data, search, dateFrom, dateTo]
   );
   const cleanFiltered = useMemo(
-    () => applyFilters(logs, { status: "clean", search, dateFrom, dateTo }),
-    [logs, search, dateFrom, dateTo]
+    () => applyFilters(data, { status: "clean", search, dateFrom, dateTo }),
+    [data, search, dateFrom, dateTo]
   );
 
   const onRunAll = () => {
@@ -92,9 +102,54 @@ export function ImportsClient({ logs }: ImportsClientProps) {
     });
   };
 
+  const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+  const reloadLogs = useCallback(async () => {
+    if (!apiBase) return;
+    try {
+      const url = new URL("/api/imports/logs", apiBase);
+      url.searchParams.set("limit", "200");
+      url.searchParams.set("skip", "0");
+
+      const res = await fetch(url.toString(), {
+        method: "GET",
+        cache: "no-store",
+      });
+      if (!res.ok) return;
+
+      const json = (await res.json()) as ApiResponse<ImportLog[]>;
+      setData(json.data);
+    } catch (err) {
+      console.error("Failed to reload logs", err);
+    }
+  }, [apiBase]);
+
+  useEffect(() => {
+    if (!apiBase) return;
+
+    const url = new URL("/api/events/imports", apiBase);
+    const source = new EventSource(url.toString());
+
+    const handler = (event: MessageEvent) => {
+      void reloadLogs();
+    };
+
+    source.addEventListener("imports-updated", handler);
+
+    source.onmessage = () => {};
+
+    source.onerror = (err) => {
+      console.error("SSE error", err);
+    };
+
+    return () => {
+      source.removeEventListener("imports-updated", handler);
+      source.close();
+    };
+  }, [apiBase, reloadLogs]);
+
   return (
-    <div className="space-y-4">
-      {/* Header + actions */}
+    <div className="space-y-4 max-w-full">
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-2">
           <div>
@@ -102,7 +157,8 @@ export function ImportsClient({ logs }: ImportsClientProps) {
               Import History
             </h2>
             <p className="text-sm text-muted-foreground">
-              View and filter all import runs across feeds.
+              View and filter all import runs across feeds. Updates live while
+              imports are running.
             </p>
           </div>
           <div className="flex gap-2">
@@ -188,6 +244,7 @@ export function ImportsClient({ logs }: ImportsClientProps) {
           <TabsTrigger value="failed">Failed</TabsTrigger>
           <TabsTrigger value="clean">Successful</TabsTrigger>
         </TabsList>
+
         <div className="mt-3 max-w-full">
           <TabsContent value="all" className="mt-0">
             <DataTable columns={importColumns} data={allFiltered} />

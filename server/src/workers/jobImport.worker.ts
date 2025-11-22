@@ -7,6 +7,7 @@ import { JobImportJobData } from "../queues/jobImport.queue";
 import { JobModel } from "../models/job.model";
 import { ImportLogModel } from "../models/importLog.model";
 import { logger } from "../utils/logger";
+import { broadcastSSE } from "../events/sse";
 
 (async () => {
   await mongoose.connect(env.mongoUri);
@@ -54,6 +55,11 @@ import { logger } from "../utils/logger";
           }
         );
 
+        broadcastSSE("imports-updated", {
+          reason: "job-processed",
+          importLogId,
+        });
+
         return;
       } catch (err: any) {
         logger.error("[Worker] Job failed", err?.message || err);
@@ -69,6 +75,11 @@ import { logger } from "../utils/logger";
             },
           }
         );
+
+        broadcastSSE("imports-updated", {
+          reason: "job-failed",
+          importLogId: job.data.importLogId,
+        });
 
         throw err;
       }

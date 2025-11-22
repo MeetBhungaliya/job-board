@@ -5,6 +5,7 @@ import { Job } from "../types/interfaces/job.interface";
 import { ImportLogModel } from "../models/importLog.model";
 import { enqueueJobsForFeed } from "../queues/jobImport.queue";
 import { logger } from "../utils/logger";
+import { broadcastSSE } from "../events/sse";
 
 interface RssItem {
   title?: string;
@@ -28,7 +29,7 @@ function normalizeRssItem(item: RssItem, feedUrl: string): Job | null {
     location: "",
     category: "",
     postedDate: item.pubDate ? new Date(item.pubDate) : undefined,
-    source: feedUrl
+    source: feedUrl,
   };
 }
 
@@ -50,23 +51,25 @@ export class JobImportService {
       totalImported: 0,
       newJobs: 0,
       updatedJobs: 0,
-      failedJobs: []
+      failedJobs: [],
+    });
+
+    broadcastSSE("imports-updated", {
+      reason: "import-started",
+      importLogId: importLog._id,
     });
 
     try {
       const res = await axios.get<string>(feedUrl, {
         responseType: "text",
-        timeout: 30000
+        timeout: 30000,
       });
 
       const xml = res.data;
       const json = await parseXmlToJson(xml);
 
       const items: RssItem[] =
-        json?.rss?.channel?.item ||
-        json?.channel?.item ||
-        json?.items ||
-        [];
+        json?.rss?.channel?.item || json?.channel?.item || json?.items || [];
 
       const arr = Array.isArray(items) ? items : [items];
       const jobs: Job[] = [];
@@ -81,11 +84,22 @@ export class JobImportService {
         { $set: { totalFetched: jobs.length } }
       );
 
+      broadcastSSE("imports-updated", {
+        reason: "import-fetched",
+        importLogId: importLog._id,
+      });
+
       if (!jobs.length) {
         await ImportLogModel.updateOne(
           { _id: importLog._id },
           { $set: { finishedAt: new Date() } }
         );
+
+        broadcastSSE("imports-updated", {
+          reason: "import-finished-empty",
+          importLogId: importLog._id,
+        });
+
         return;
       }
 
@@ -102,11 +116,16 @@ export class JobImportService {
           $set: { finishedAt: new Date() },
           $push: {
             failedJobs: {
-              reason: err?.message || "Feed fetch failed"
-            }
-          }
+              reason: err?.message || "Feed fetch failed",
+            },
+          },
         }
       );
+
+      broadcastSSE("imports-updated", {
+        reason: "import-error",
+        importLogId: importLog._id,
+      });
     }
   }
 }
