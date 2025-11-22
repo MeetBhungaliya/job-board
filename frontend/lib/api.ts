@@ -1,4 +1,4 @@
-import { ApiResponse, ImportLog } from "./types";
+import { AnalyticsSummary, ApiResponse, ImportLog } from "./types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -16,7 +16,6 @@ export async function fetchImportLogs(
 
   const res = await fetch(url.toString(), {
     method: "GET",
-    // ensure server fresh data
     cache: "no-store"
   });
 
@@ -46,4 +45,20 @@ export async function triggerImportOnBackend(
       `Failed to trigger import: ${res.status} ${res.statusText} - ${text}`
     );
   }
+}
+
+export async function fetchAnalyticsSummary(): Promise<AnalyticsSummary> {
+  const url = new URL("/api/analytics/summary", API_BASE_URL);
+
+  const res = await fetch(url.toString(), {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch analytics: ${res.statusText}`);
+  }
+
+  const json = (await res.json()) as ApiResponse<AnalyticsSummary>;
+  return json.data;
 }

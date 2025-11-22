@@ -1,17 +1,10 @@
 import { fetchImportLogs } from "@/lib/api";
-import { ImportLog } from "@/lib/types";
-import { ImportToolbar } from "./toolbar";
-import { ImportTable } from "./table";
+import { ImportsClient } from "./imports-client";
 
-export const dynamic = "force-dynamic"; // always fetch fresh
+export const dynamic = "force-dynamic";
 
 export default async function ImportsPage() {
-  const logs = await fetchImportLogs(50, 0);
+  const logs = await fetchImportLogs(200, 0);
 
-  return (
-    <div className="flex flex-col gap-4">
-      <ImportToolbar />
-      <ImportTable logs={logs} />
-    </div>
-  );
+  return <ImportsClient logs={logs} />;
 }

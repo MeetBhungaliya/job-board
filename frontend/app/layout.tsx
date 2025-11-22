@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/layout/app-sidebar";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -16,32 +18,26 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          "min-h-screen bg-background text-foreground antialiased"
+          "min-h-screen bg-background text-foreground antialiased overflow-x-hidden" // 👈 added overflow-x-hidden
         )}
       >
-        <div className="min-h-screen flex">
-          <aside className="hidden md:flex w-64 border-r bg-muted/40 flex-col p-4 gap-4">
-            <div className="text-lg font-semibold tracking-tight">
-              Artha Admin
-            </div>
-            <nav className="flex flex-col gap-2 text-sm">
-              <a
-                href="/imports"
-                className="px-2 py-1.5 rounded-md hover:bg-muted"
-              >
-                Import History
-              </a>
-            </nav>
-          </aside>
-          <main className="flex-1 flex flex-col">
-            <header className="w-full border-b px-4 py-3 flex items-center justify-between">
-              <h1 className="text-xl font-semibold tracking-tight">
-                Job Import Dashboard
-              </h1>
+        <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset className="flex flex-col min-h-screen overflow-x-hidden">
+            <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+              <SidebarTrigger className="-ml-1" />
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold tracking-tight">
+                  Artha Job Dashboard
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  Monitor imports, analytics, and data quality
+                </span>
+              </div>
             </header>
-            <div className="p-4">{children}</div>
-          </main>
-        </div>
+            <main className="flex-1 p-4 overflow-x-hidden">{children}</main>
+          </SidebarInset>
+        </SidebarProvider>
       </body>
     </html>
   );

@@ -1,3 +1,4 @@
+// app/analytics/page.tsx
 import { fetchAnalyticsSummary } from "@/lib/api";
 import { AnalyticsSummary } from "@/lib/types";
 import { Card } from "@/components/ui/card";
@@ -27,7 +28,7 @@ function StatCard({
   );
 }
 
-export default async function DashboardPage() {
+export default async function AnalyticsPage() {
   const summary: AnalyticsSummary = await fetchAnalyticsSummary();
 
   const {
@@ -58,7 +59,7 @@ export default async function DashboardPage() {
         <StatCard
           label="Total Jobs"
           value={totalJobs.toLocaleString()}
-          description="Jobs currently in database"
+          description="Current jobs in database"
         />
         <StatCard
           label="Total Imports"
@@ -89,8 +90,8 @@ export default async function DashboardPage() {
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground">
-            Sum of all failed jobs across all import runs. Use this to detect
-            data quality issues.
+            Sum of all failed jobs across all import runs. Use this to see data
+            quality issues.
           </p>
           <p className="text-xs text-muted-foreground">
             New vs updated jobs ratio:{" "}
@@ -180,6 +181,7 @@ export default async function DashboardPage() {
             </p>
           </div>
         </div>
+
         {jobsBySource.length === 0 ? (
           <p className="text-xs text-muted-foreground">
             No jobs yet. Run an import to see data.

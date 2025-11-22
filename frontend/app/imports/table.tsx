@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { CopyableText } from "@/components/copyable-text";
 
 function formatDate(value?: string) {
   if (!value) return "-";
@@ -18,8 +19,7 @@ function formatDate(value?: string) {
 }
 
 function calculateStatus(log: ImportLog): "completed" | "running" {
-  if (log.finishedAt) return "completed";
-  return "running";
+  return log.finishedAt ? "completed" : "running";
 }
 
 export function ImportTable({ logs }: { logs: ImportLog[] }) {
@@ -28,8 +28,8 @@ export function ImportTable({ logs }: { logs: ImportLog[] }) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[230px]">Feed</TableHead>
-            <TableHead>File Name</TableHead>
+            <TableHead className="w-[260px]">Feed URL</TableHead>
+            <TableHead className="w-[260px]">File Name</TableHead>
             <TableHead className="w-[180px]">Started</TableHead>
             <TableHead className="w-[180px]">Finished</TableHead>
             <TableHead className="text-right">Fetched</TableHead>
@@ -57,38 +57,48 @@ export function ImportTable({ logs }: { logs: ImportLog[] }) {
 
               return (
                 <TableRow key={log._id}>
-                  <TableCell className="max-w-[230px] truncate">
-                    <span title={log.feedUrl}>{log.feedUrl}</span>
+                  <TableCell className="align-top">
+                    <CopyableText text={log.feedUrl} label="Feed" />
                   </TableCell>
-                  <TableCell className="max-w-[260px] truncate">
-                    <span title={log.fileName}>{log.fileName}</span>
+                  <TableCell className="align-top">
+                    <CopyableText text={log.fileName} label="File" />
                   </TableCell>
-                  <TableCell>{formatDate(log.startedAt)}</TableCell>
-                  <TableCell>{formatDate(log.finishedAt)}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="align-top">
+                    <p className="text-xs">{formatDate(log.startedAt)}</p>
+                  </TableCell>
+                  <TableCell className="align-top">
+                    <p className="text-xs">{formatDate(log.finishedAt)}</p>
+                  </TableCell>
+                  <TableCell className="text-right align-top text-xs">
                     {log.totalFetched}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right align-top text-xs">
                     {log.totalImported}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right align-top text-xs">
                     {log.newJobs}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right align-top text-xs">
                     {log.updatedJobs}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right align-top text-xs">
                     {failedCount > 0 ? (
-                      <Badge variant="destructive">{failedCount}</Badge>
+                      <Badge variant="destructive" className="text-[11px]">
+                        {failedCount}
+                      </Badge>
                     ) : (
                       <span className="text-muted-foreground">0</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right align-top">
                     {status === "completed" ? (
-                      <Badge variant="outline">Completed</Badge>
+                      <Badge variant="outline" className="text-[11px]">
+                        Completed
+                      </Badge>
                     ) : (
-                      <Badge variant="secondary">Running</Badge>
+                      <Badge variant="secondary" className="text-[11px]">
+                        Running
+                      </Badge>
                     )}
                   </TableCell>
                 </TableRow>
