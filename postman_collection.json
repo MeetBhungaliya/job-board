@@ -1,0 +1,101 @@
+{
+  "info": {
+    "_postman_id": "8a4f1b4c-0000-4000-9000-artha-job-importer",
+    "name": "Artha Job Importer API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for testing the Artha Job Board backend (Node + Express + BullMQ + MongoDB)."
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/health",
+          "host": ["{{base_url}}"],
+          "path": ["api", "health"]
+        },
+        "description": "Simple health check to verify server is running."
+      },
+      "response": []
+    },
+    {
+      "name": "Trigger Import - All Feeds",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/imports/run",
+          "host": ["{{base_url}}"],
+          "path": ["api", "imports", "run"]
+        },
+        "description": "Trigger job import for ALL configured feeds. Returns immediately with 202; worker processes jobs in background."
+      },
+      "response": []
+    },
+    {
+      "name": "Trigger Import - Single Feed",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"feedUrl\": \"https://jobicy.com/?feed=job_feed\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/imports/run",
+          "host": ["{{base_url}}"],
+          "path": ["api", "imports", "run"]
+        },
+        "description": "Trigger job import for a specific RSS feed. Useful for testing one feed at a time."
+      },
+      "response": []
+    },
+    {
+      "name": "List Import Logs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/imports/logs?limit=20&skip=0",
+          "host": ["{{base_url}}"],
+          "path": ["api", "imports", "logs"],
+          "query": [
+            {
+              "key": "limit",
+              "value": "20"
+            },
+            {
+              "key": "skip",
+              "value": "0"
+            }
+          ]
+        },
+        "description": "Get paginated import logs (for your admin dashboard). Shows totals, newJobs, updatedJobs, failedJobs etc."
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:4000",
+      "type": "string"
+    }
+  ]
+}
