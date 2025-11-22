@@ -1,0 +1,90 @@
+# =========================================
+# Server Folder Gitignore (Node + TS)
+# =========================================
+
+# Node modules
+node_modules/
+
+# Logs
+logs/
+*.log
+log.txt
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Environment files (backend only)
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+build/
+out/
+tsc-out/
+coverage/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Temp files
+tmp/
+temp/
+*.tmp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+
+# Local dev overrides
+.env.local
+*.local
+config/local.*
+
+# Redis / Cache
+dump.rdb
+
+# MongoDB local data
+mongodb-data/
+data/
+
+# PM2
+.pids
+*.pid
+*.seed
+*.pid.lock
+
+# Diagnostic reports
+reports/
+*.report.json
+
+# Docker artifacts
+docker-data/
+docker-compose.override.yml
+
+# Package manager caches
+.npm/
+.pnpm-store/
+.yarn/
+
+# Jest
+jest-cache/
+jest-results/
+
+# Prisma (optional depending on setup)
+prisma/migrations/
+prisma/dev.db
+prisma/dev.db-journal
+
+# Build artifacts (SWC / ESBuild / Webpack)
+.cache/
+.esbuild/
+
+# Ignore server-specific output only
+# (We intentionally avoid .next/ or .vercel/)
