@@ -28,7 +28,7 @@ function normalizeRssItem(item: RssItem, feedUrl: string): Job | null {
     company: "",
     location: "",
     category: "",
-    postedDate: item.pubDate ? new Date(item.pubDate) : undefined,
+    postedDate: item.pubDate ? new Date(item.pubDate).toISOString() : undefined,
     source: feedUrl,
   };
 }

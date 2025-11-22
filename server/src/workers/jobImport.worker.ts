@@ -10,7 +10,7 @@ import { logger } from "../utils/logger";
 import { broadcastSSE } from "../events/sse";
 
 (async () => {
-  await mongoose.connect(env.mongoUri);
+  await mongoose.connect(env.mongoUri!);
   logger.info("[Worker] Mongo connected");
 
   const worker = new Worker<JobImportJobData>(
@@ -21,25 +21,30 @@ import { broadcastSSE } from "../events/sse";
       try {
         const now = new Date();
 
-        const result = await JobModel.findOneAndUpdate(
+        const updateResult = await JobModel.updateOne(
           { jobUrl: jobPayload.jobUrl },
           {
             $set: {
-              ...jobPayload,
+              ...jobPayload
             },
             $setOnInsert: {
-              createdAt: now,
-            },
+              createdAt: now
+            }
           },
-          { upsert: true, new: true, rawResult: true }
+          { upsert: true }
         );
 
-        const updatedExisting =
-          result.lastErrorObject && result.lastErrorObject.updatedExisting;
-        const isNew = !updatedExisting;
+        // Safely detect if this was an insert or an update
+        const raw = updateResult as any;
+        const upsertedCount =
+          raw.upsertedCount ??
+          (Array.isArray(raw.upserted) ? raw.upserted.length : 0) ??
+          0;
+
+        const isNew = upsertedCount > 0;
 
         const inc: Record<string, number> = {
-          totalImported: 1,
+          totalImported: 1
         };
 
         if (isNew) {
@@ -51,13 +56,13 @@ import { broadcastSSE } from "../events/sse";
         await ImportLogModel.updateOne(
           { _id: importLogId },
           {
-            $inc: inc,
+            $inc: inc
           }
         );
 
         broadcastSSE("imports-updated", {
           reason: "job-processed",
-          importLogId,
+          importLogId
         });
 
         return;
@@ -70,15 +75,15 @@ import { broadcastSSE } from "../events/sse";
             $push: {
               failedJobs: {
                 jobUrl: job.data.job.jobUrl,
-                reason: err?.message || "Unknown error",
-              },
-            },
+                reason: err?.message || "Unknown error"
+              }
+            }
           }
         );
 
         broadcastSSE("imports-updated", {
           reason: "job-failed",
-          importLogId: job.data.importLogId,
+          importLogId: job.data.importLogId
         });
 
         throw err;
@@ -86,7 +91,7 @@ import { broadcastSSE } from "../events/sse";
     },
     {
       connection: { url: env.redisUrl },
-      concurrency: env.workerConcurrency,
+      concurrency: env.workerConcurrency
     }
   );
 

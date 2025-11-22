@@ -1,10 +1,12 @@
-import { Schema, model, Document } from "mongoose";
+import { Schema, model, Document, Types } from "mongoose";
 import { Job } from "../types/interfaces/job.interface";
 
-export interface JobDocument extends Job, Document {
-  createdAt: Date;
-  updatedAt: Date;
-}
+export type JobDocument = Document<Types.ObjectId> &
+  Omit<Job, "_id" | "postedDate" | "createdAt" | "updatedAt"> & {
+    postedDate?: Date;
+    createdAt: Date;
+    updatedAt: Date;
+  };
 
 const JobSchema = new Schema<JobDocument>(
   {
@@ -15,9 +17,11 @@ const JobSchema = new Schema<JobDocument>(
     category: { type: String },
     postedDate: { type: Date },
     description: { type: String },
-    source: { type: String }
+    source: { type: String },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
 JobSchema.index({ jobUrl: 1 }, { unique: true });

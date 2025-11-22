@@ -1,12 +1,15 @@
-import { Schema, model, Document } from "mongoose";
-import { ImportLog, FailedJobInfo } from "../types/interfaces/importLog.interface";
+import { Schema, model, Document, Types } from "mongoose";
+import {
+  ImportLog,
+  FailedJobInfo
+} from "../types/interfaces/importLog.interface";
 
-export interface ImportLogDocument extends ImportLog, Document {}
+export type ImportLogDocument = Document<Types.ObjectId> & Omit<ImportLog, "_id">;
 
 const FailedJobSchema = new Schema<FailedJobInfo>(
   {
     jobUrl: { type: String },
-    reason: { type: String, required: true },
+    reason: { type: String, required: true }
   },
   { _id: false }
 );
