@@ -14,9 +14,9 @@ yarn-debug.log*
 pnpm-debug.log*
 
 # Environment files (backend only)
-.env
-.env.*
-!.env.example
+# .env
+# .env.*
+# !.env.example
 
 # Build output
 dist/

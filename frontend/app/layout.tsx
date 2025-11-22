@@ -5,8 +5,8 @@ import { AppSidebar } from "@/components/layout/app-sidebar";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Artha Job Admin",
-  description: "Admin dashboard for Artha job imports"
+  title: "Job Admin",
+  description: "Admin dashboard for job imports"
 };
 
 export default function RootLayout({
@@ -18,7 +18,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          "min-h-screen bg-background text-foreground antialiased overflow-x-hidden" // 👈 added overflow-x-hidden
+          "min-h-screen bg-background text-foreground antialiased overflow-x-hidden"
         )}
       >
         <SidebarProvider>
@@ -28,10 +28,7 @@ export default function RootLayout({
               <SidebarTrigger className="-ml-1" />
               <div className="flex flex-col">
                 <span className="text-sm font-semibold tracking-tight">
-                  Artha Job Dashboard
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  Monitor imports, analytics, and data quality
+                  Job Dashboard
                 </span>
               </div>
             </header>

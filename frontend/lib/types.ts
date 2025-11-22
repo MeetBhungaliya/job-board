@@ -20,8 +20,6 @@ export interface ApiResponse<T> {
   data: T;
   message: string;
 }
-
-// NEW TYPES
 export interface JobsBySource {
   source: string;
   count: number;
@@ -46,4 +44,24 @@ export interface AnalyticsSummary {
     failedJobs: number;
   };
   jobsBySource: JobsBySource[];
+}
+export interface Job {
+  _id: string;
+  jobUrl: string;
+  title: string;
+  company?: string;
+  location?: string;
+  category?: string;
+  postedDate?: string;
+  description?: string;
+  source?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface JobsListResult {
+  items: Job[];
+  total: number;
+  page: number;
+  limit: number;
 }

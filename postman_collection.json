@@ -1,100 +1,221 @@
 {
   "info": {
-    "_postman_id": "8a4f1b4c-0000-4000-9000-artha-job-importer",
-    "name": "Artha Job Importer API",
+    "_postman_id": "c5b2c3de-0000-4000-9000-job-board",
+    "name": "Job Board API",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Postman collection for testing the Artha Job Board backend (Node + Express + BullMQ + MongoDB)."
+    "description": "Postman collection for Job Board backend (Node + Express + MongoDB + Redis + BullMQ + SSE)."
   },
   "item": [
     {
-      "name": "Health Check",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/api/health",
-          "host": ["{{base_url}}"],
-          "path": ["api", "health"]
-        },
-        "description": "Simple health check to verify server is running."
-      },
-      "response": []
-    },
-    {
-      "name": "Trigger Import - All Feeds",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{}"
-        },
-        "url": {
-          "raw": "{{base_url}}/api/imports/run",
-          "host": ["{{base_url}}"],
-          "path": ["api", "imports", "run"]
-        },
-        "description": "Trigger job import for ALL configured feeds. Returns immediately with 202; worker processes jobs in background."
-      },
-      "response": []
-    },
-    {
-      "name": "Trigger Import - Single Feed",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"feedUrl\": \"https://jobicy.com/?feed=job_feed\"\n}"
-        },
-        "url": {
-          "raw": "{{base_url}}/api/imports/run",
-          "host": ["{{base_url}}"],
-          "path": ["api", "imports", "run"]
-        },
-        "description": "Trigger job import for a specific RSS feed. Useful for testing one feed at a time."
-      },
-      "response": []
-    },
-    {
-      "name": "List Import Logs",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/api/imports/logs?limit=20&skip=0",
-          "host": ["{{base_url}}"],
-          "path": ["api", "imports", "logs"],
-          "query": [
-            {
-              "key": "limit",
-              "value": "20"
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "health"]
             },
-            {
-              "key": "skip",
-              "value": "0"
-            }
-          ]
+            "description": "Simple health check to verify the server is running."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Imports",
+      "item": [
+        {
+          "name": "Trigger Import - All Feeds",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/imports/run",
+              "host": ["{{base_url}}"],
+              "path": ["api", "imports", "run"]
+            },
+            "description": "Trigger job import for ALL configured feeds."
+          },
+          "response": []
         },
-        "description": "Get paginated import logs (for your admin dashboard). Shows totals, newJobs, updatedJobs, failedJobs etc."
-      },
-      "response": []
+        {
+          "name": "Trigger Import - Single Feed",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"feedUrl\": \"https://jobicy.com/?feed=job_feed\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/imports/run",
+              "host": ["{{base_url}}"],
+              "path": ["api", "imports", "run"]
+            },
+            "description": "Trigger job import for a specific RSS feed URL."
+          },
+          "response": []
+        },
+        {
+          "name": "List Import Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/imports/logs?limit=20&skip=0",
+              "host": ["{{base_url}}"],
+              "path": ["api", "imports", "logs"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "skip",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Get paginated import logs (used in the admin imports page)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Jobs",
+      "item": [
+        {
+          "name": "List Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/jobs?page=1&limit=50&search=&source=&dateFrom=&dateTo=",
+              "host": ["{{base_url}}"],
+              "path": ["api", "jobs"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Optional search by title/company/location/category"
+                },
+                {
+                  "key": "source",
+                  "value": "",
+                  "description": "Optional filter by job.source"
+                },
+                {
+                  "key": "dateFrom",
+                  "value": "",
+                  "description": "Optional ISO date (YYYY-MM-DD)"
+                },
+                {
+                  "key": "dateTo",
+                  "value": "",
+                  "description": "Optional ISO date (YYYY-MM-DD)"
+                }
+              ]
+            },
+            "description": "Get a paginated list of jobs with optional filters."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Job By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/jobs/{{job_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "jobs", "{{job_id}}"]
+            },
+            "description": "Get details for a specific job. Use a valid job _id from List Jobs response."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Get Analytics Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/summary",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "summary"]
+            },
+            "description": "Get analytics summary: total jobs, imports, new/updated jobs, failures, last import, jobs by source."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Events (SSE)",
+      "item": [
+        {
+          "name": "Import Events Stream (SSE)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/events/imports",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events", "imports"]
+            },
+            "description": "Server-Sent Events endpoint for import updates. Best tested with a browser or curl: `curl -N {{base_url}}/api/events/imports`."
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
     {
       "key": "base_url",
       "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "job_id",
+      "value": "REPLACE_WITH_JOB_ID",
       "type": "string"
     }
   ]
