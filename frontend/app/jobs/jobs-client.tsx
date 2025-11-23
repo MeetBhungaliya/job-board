@@ -14,9 +14,10 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
 import { RefreshCcw } from "lucide-react";
+import { TableSkeleton } from "@/components/loading-skeletons";
 
 type JobsTab = "all" | "recent" | "today";
 
@@ -34,7 +35,6 @@ export function JobsClient({ initial }: JobsClientProps) {
 
   const [jobs, setJobs] = useState<Job[]>(initial.items);
 
-  // Derived distinct sources for filter
   const sources = useMemo(
     () =>
       Array.from(
@@ -56,7 +56,7 @@ export function JobsClient({ initial }: JobsClientProps) {
         search,
         source: source || undefined,
         dateFrom: dateFrom || undefined,
-        dateTo: dateTo || undefined
+        dateTo: dateTo || undefined,
       });
       setJobs(result.items);
     } catch (err) {
@@ -101,6 +101,8 @@ export function JobsClient({ initial }: JobsClientProps) {
     setDateFrom("");
     setDateTo("");
   };
+
+  const showSkeleton = loading && jobs.length === 0;
 
   return (
     <div className="space-y-4 max-w-full">
@@ -217,15 +219,21 @@ export function JobsClient({ initial }: JobsClientProps) {
         </TabsList>
 
         <div className="mt-3 max-w-full">
-          <TabsContent value="all" className="mt-0">
-            <DataTable columns={jobColumns} data={filteredJobs} />
-          </TabsContent>
-          <TabsContent value="recent" className="mt-0">
-            <DataTable columns={jobColumns} data={filteredJobs} />
-          </TabsContent>
-          <TabsContent value="today" className="mt-0">
-            <DataTable columns={jobColumns} data={filteredJobs} />
-          </TabsContent>
+          {showSkeleton ? (
+            <TableSkeleton />
+          ) : (
+            <>
+              <TabsContent value="all" className="mt-0">
+                <DataTable columns={jobColumns} data={filteredJobs} />
+              </TabsContent>
+              <TabsContent value="recent" className="mt-0">
+                <DataTable columns={jobColumns} data={filteredJobs} />
+              </TabsContent>
+              <TabsContent value="today" className="mt-0">
+                <DataTable columns={jobColumns} data={filteredJobs} />
+              </TabsContent>
+            </>
+          )}
         </div>
       </Tabs>
     </div>

@@ -16,6 +16,7 @@ import {
 } from "react";
 import { triggerImport } from "./actions";
 import { importColumns } from "./columns";
+import { TableSkeleton } from "@/components/loading-skeletons";
 
 type StatusFilter = "all" | "failed" | "clean";
 
@@ -76,6 +77,7 @@ export function ImportsClient({ logs }: ImportsClientProps) {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [isPending, startTransition] = useTransition();
+  const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState<ImportLog[]>(logs);
 
   useEffect(() => {
@@ -107,6 +109,7 @@ export function ImportsClient({ logs }: ImportsClientProps) {
   const reloadLogs = useCallback(async () => {
     if (!apiBase) return;
     try {
+      setIsLoading(true);
       const url = new URL("/api/imports/logs", apiBase);
       url.searchParams.set("limit", "200");
       url.searchParams.set("skip", "0");
@@ -121,6 +124,8 @@ export function ImportsClient({ logs }: ImportsClientProps) {
       setData(json.data);
     } catch (err) {
       console.error("Failed to reload logs", err);
+    } finally {
+      setIsLoading(false);
     }
   }, [apiBase]);
 
@@ -130,13 +135,11 @@ export function ImportsClient({ logs }: ImportsClientProps) {
     const url = new URL("/api/events/imports", apiBase);
     const source = new EventSource(url.toString());
 
-    const handler = (event: MessageEvent) => {
+    const handler = () => {
       void reloadLogs();
     };
 
     source.addEventListener("imports-updated", handler);
-
-    source.onmessage = () => {};
 
     source.onerror = (err) => {
       console.error("SSE error", err);
@@ -147,6 +150,8 @@ export function ImportsClient({ logs }: ImportsClientProps) {
       source.close();
     };
   }, [apiBase, reloadLogs]);
+
+  const showSkeleton = isLoading && data.length === 0;
 
   return (
     <div className="space-y-4 max-w-full">
@@ -180,7 +185,6 @@ export function ImportsClient({ logs }: ImportsClientProps) {
           </div>
         </div>
 
-        {/* Filters */}
         <Card className="p-3">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div className="flex flex-col gap-2 md:flex-row md:items-end">
@@ -246,15 +250,21 @@ export function ImportsClient({ logs }: ImportsClientProps) {
         </TabsList>
 
         <div className="mt-3 max-w-full">
-          <TabsContent value="all" className="mt-0">
-            <DataTable columns={importColumns} data={allFiltered} />
-          </TabsContent>
-          <TabsContent value="failed" className="mt-0">
-            <DataTable columns={importColumns} data={failedFiltered} />
-          </TabsContent>
-          <TabsContent value="clean" className="mt-0">
-            <DataTable columns={importColumns} data={cleanFiltered} />
-          </TabsContent>
+          {showSkeleton ? (
+            <TableSkeleton />
+          ) : (
+            <>
+              <TabsContent value="all" className="mt-0">
+                <DataTable columns={importColumns} data={allFiltered} />
+              </TabsContent>
+              <TabsContent value="failed" className="mt-0">
+                <DataTable columns={importColumns} data={failedFiltered} />
+              </TabsContent>
+              <TabsContent value="clean" className="mt-0">
+                <DataTable columns={importColumns} data={cleanFiltered} />
+              </TabsContent>
+            </>
+          )}
         </div>
       </Tabs>
     </div>
